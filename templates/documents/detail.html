@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6 lg:p-8 max-w-5xl mx-auto space-y-6 fade-in">
+    <nav class="flex items-center gap-2 text-sm text-gray-400" aria-label="Breadcrumb">
+        <a href="/documents" class="hover:text-gray-600">Documents</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-700">{{ document.document_number }}</span>
+    </nav>
+
+    <div class="flex items-center gap-4">
+        <a href="/documents" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="flex-1">
+            <h1 class="text-2xl font-bold text-gray-900">{{ document.document_number }}</h1>
+            <p class="text-sm text-gray-500">{{ document.type | title }} for {{ client.company_name if client else '—' }}</p>
+        </div>
+        <span class="badge badge-{{ document.status }} text-sm">{{ document.status | title }}</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Document Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="card p-5">
+                <h2 class="font-semibold text-gray-900 mb-4">Document Details</h2>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div><span class="text-gray-400">Issue Date</span><p class="font-medium">{{ document.issue_date.strftime('%d %B %Y') }}</p></div>
+                    <div><span class="text-gray-400">Due Date</span><p class="font-medium">{{ document.due_date.strftime('%d %B %Y') if document.due_date else '—' }}</p></div>
+                    {% if document.valid_until %}
+                    <div><span class="text-gray-400">Valid Until</span><p class="font-medium">{{ document.valid_until.strftime('%d %B %Y') }}</p></div>
+                    {% endif %}
+                    <div><span class="text-gray-400">Payment Terms</span><p class="font-medium">{{ document.payment_terms }}</p></div>
+                    <div><span class="text-gray-400">VAT Mode</span><p class="font-medium">{{ document.vat_mode | title }}</p></div>
+                    {% if document.paid_date %}
+                    <div><span class="text-gray-400">Paid Date</span><p class="font-medium text-green-600">{{ document.paid_date.strftime('%d %B %Y') }}</p></div>
+                    {% endif %}
+                    {% if document.parent_document_id %}
+                    <div><span class="text-gray-400">Parent Document</span><p class="font-medium"><a href="/documents/{{ document.parent_document_id }}" class="text-primary hover:underline">View</a></p></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Line Items -->
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-900">Line Items</h2>
+                </div>
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="text-left px-5 py-2 font-medium text-gray-500">Service</th>
+                            <th scope="col" class="text-right px-5 py-2 font-medium text-gray-500">Qty</th>
+                            <th scope="col" class="text-right px-5 py-2 font-medium text-gray-500">Price</th>
+                            <th scope="col" class="text-right px-5 py-2 font-medium text-gray-500">Disc</th>
+                            <th scope="col" class="text-right px-5 py-2 font-medium text-gray-500">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for li in line_items %}
+                        <tr>
+                            <td class="px-5 py-3">
+                                <p class="font-medium text-gray-900">{{ li.service }}</p>
+                                {% if li.description %}<p class="text-xs text-gray-400">{{ li.description }}</p>{% endif %}
+                            </td>
+                            <td class="px-5 py-3 text-right text-gray-600">{{ li.quantity }}</td>
+                            <td class="px-5 py-3 text-right text-gray-600">R{{ "{:,.2f}".format(li.unit_price) }}</td>
+                            <td class="px-5 py-3 text-right text-gray-600">{% if li.discount > 0 %}-R{{ "{:,.2f}".format(li.discount) }}{% else %}—{% endif %}</td>
+                            <td class="px-5 py-3 text-right font-medium text-gray-900">R{{ "{:,.2f}".format(li.line_total) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals -->
+            <div class="card p-5">
+                <div class="space-y-2 text-sm max-w-xs ml-auto">
+                    <div class="flex justify-between"><span class="text-gray-500">Subtotal</span><span class="font-medium">R{{ "{:,.2f}".format(document.subtotal) }}</span></div>
+                    {% if document.discount_amount > 0 %}
+                    <div class="flex justify-between"><span class="text-gray-500">Discount</span><span class="font-medium text-red-600">-R{{ "{:,.2f}".format(document.discount_amount) }}</span></div>
+                    {% endif %}
+                    <div class="flex justify-between"><span class="text-gray-500">VAT ({{ document.vat_rate }}%)</span><span class="font-medium">R{{ "{:,.2f}".format(document.vat_amount) }}</span></div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Total</span><span class="font-bold text-primary">R{{ "{:,.2f}".format(document.grand_total) }}</span></div>
+                </div>
+            </div>
+
+            {% if document.client_notes %}
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-2">Client Notes</h3>
+                <p class="text-sm text-gray-600">{{ document.client_notes }}</p>
+            </div>
+            {% endif %}
+
+            {% if document.terms_and_conditions %}
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-2">Terms & Conditions</h3>
+                <p class="text-sm text-gray-600 whitespace-pre-line">{{ document.terms_and_conditions }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Payments -->
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="font-semibold text-gray-900">Payments <span class="text-sm font-normal text-gray-400">({{ payments|length }})</span></h2>
+                    {% if balance > 0 %}
+                    <a href="/documents/{{ document.id }}/payments" class="text-sm text-primary hover:underline font-medium">Record Payment</a>
+                    {% endif %}
+                </div>
+                {% if payments %}
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th scope="col" class="text-left px-5 py-2 font-medium text-gray-500">Date</th>
+                            <th scope="col" class="text-right px-5 py-2 font-medium text-gray-500">Amount</th>
+                            <th scope="col" class="text-left px-5 py-2 font-medium text-gray-500">Method</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for p in payments[:3] %}
+                        <tr>
+                            <td class="px-5 py-2 text-gray-600">{{ p.payment_date.strftime('%d %b %Y') }}</td>
+                            <td class="px-5 py-2 text-right font-medium text-green-600">R{{ "{:,.2f}".format(p.amount) }}</td>
+                            <td class="px-5 py-2 text-gray-600">{{ p.payment_method | replace('_', ' ') | title if p.payment_method else '—' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if payments|length > 3 %}
+                <div class="px-5 py-2 text-center border-t border-gray-100">
+                    <a href="/documents/{{ document.id }}/payments" class="text-sm text-primary hover:underline">View all {{ payments|length }} payments</a>
+                </div>
+                {% endif %}
+                <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 flex justify-between text-sm">
+                    <span class="text-gray-500">Paid: <span class="font-medium text-green-600">R{{ "{:,.2f}".format(total_paid) }}</span></span>
+                    <span class="text-gray-500">Balance: <span class="font-bold {% if balance > 0 %}text-red-600{% else %}text-green-600{% endif %}">R{{ "{:,.2f}".format(balance) }}</span></span>
+                </div>
+                {% else %}
+                <div class="px-5 py-8 text-center text-gray-400 text-sm">
+                    No payments recorded
+                    {% if document.status != 'paid' %}
+                    — <a href="/documents/{{ document.id }}/payments" class="text-primary hover:underline">Record one</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Attachments -->
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-900">Attachments <span class="text-sm font-normal text-gray-400">({{ attachments|length }})</span></h2>
+                </div>
+                {% if attachments %}
+                <div class="divide-y divide-gray-50">
+                    {% for att in attachments %}
+                    <div class="px-5 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ att.original_filename }}</p>
+                                <p class="text-xs text-gray-400">{{ (att.file_size / 1024) | round(1) }} KB</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="/attachments/{{ att.id }}/delete">
+                            <button type="submit" class="text-red-400 hover:text-red-600 text-xs" onclick="return confirm('Delete this file?')">Delete</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="px-5 py-8 text-center text-gray-400 text-sm">No attachments</div>
+                {% endif %}
+                <div class="px-5 py-3 border-t border-gray-100">
+                    <form method="POST" action="/documents/{{ document.id }}/attachments" enctype="multipart/form-data" class="flex items-center gap-3">
+                        <input type="file" name="file" required class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">Upload</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Version History -->
+            {% if versions %}
+            <div class="card overflow-hidden">
+                <div class="px-5 py-3 border-b border-gray-100">
+                    <h2 class="font-semibold text-gray-900">Version History <span class="text-sm font-normal text-gray-400">({{ versions|length }})</span></h2>
+                </div>
+                <div class="divide-y divide-gray-50">
+                    {% for ver in versions %}
+                    <div class="px-5 py-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Version {{ ver.version_number }}</p>
+                                <p class="text-xs text-gray-400">{{ ver.change_summary }}</p>
+                            </div>
+                            <p class="text-xs text-gray-400">{{ ver.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Primary Actions -->
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-3">Actions</h3>
+                <div class="space-y-2">
+                    {% if document.status in ['draft', 'rejected', 'expired'] %}
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="sent">
+                        <button class="w-full btn-primary text-sm">Mark as Sent</button>
+                    </form>
+                    {% endif %}
+
+                    {% if document.status == 'sent' %}
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="accepted">
+                        <button class="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">Accept</button>
+                    </form>
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="rejected">
+                        <button class="w-full btn-danger-outline text-sm">Reject</button>
+                    </form>
+                    {% endif %}
+
+                    {% if document.status == 'overdue' %}
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="paid">
+                        <button class="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">Mark as Paid</button>
+                    </form>
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="sent">
+                        <button class="w-full btn-primary text-sm">Re-send</button>
+                    </form>
+                    {% endif %}
+
+                    {% if document.status == 'paid' %}
+                    <div class="text-sm text-green-600 text-center py-2 bg-green-50 rounded-lg">Paid on {{ document.paid_date.strftime('%d %b %Y') if document.paid_date else '—' }}</div>
+                    {% endif %}
+
+                    {% if document.status not in ['paid', 'cancelled'] %}
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="cancelled">
+                        <button class="w-full btn-danger-outline text-sm" onclick="return confirm('Cancel this document?')">Cancel</button>
+                    </form>
+                    {% endif %}
+
+                    {% if document.status in ['sent', 'accepted', 'expired', 'overdue'] %}
+                    <form method="POST" action="/documents/{{ document.id }}/status">
+                        <input type="hidden" name="status" value="draft">
+                        <button class="w-full btn-outline text-sm">Revert to Draft</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Edit & Manage -->
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-3">Manage</h3>
+                <div class="space-y-2">
+                    <a href="/documents/{{ document.id }}/edit" class="w-full btn-outline text-sm text-center block">Edit Document</a>
+
+                    <a href="/documents/{{ document.id }}/pdf" target="_blank" class="w-full btn-primary text-sm text-center block inline-flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Download PDF
+                    </a>
+
+                    <a href="/documents/{{ document.id }}/print" target="_blank" class="w-full btn-outline text-sm text-center block inline-flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print
+                    </a>
+
+                    {% if document.type in ['quote', 'invoice'] %}
+                    <form method="POST" action="/documents/{{ document.id }}/duplicate">
+                        <button class="w-full btn-outline text-sm" onclick="return confirm('Duplicate this document as a new draft?')">Duplicate as Draft</button>
+                    </form>
+                    {% endif %}
+
+                    {% if document.type == 'quote' %}
+                    <form method="POST" action="/documents/{{ document.id }}/convert">
+                        <input type="hidden" name="target_type" value="invoice">
+                        <button class="w-full btn-gold text-sm" onclick="return confirm('Convert this quote to an invoice? This cannot be undone.')">Convert to Invoice</button>
+                    </form>
+                    {% elif document.type == 'invoice' %}
+                    <form method="POST" action="/documents/{{ document.id }}/convert">
+                        <input type="hidden" name="target_type" value="paid_invoice">
+                        <button class="w-full btn-gold text-sm" onclick="return confirm('Mark this invoice as paid?')">Convert to Paid Invoice</button>
+                    </form>
+                    {% elif document.type == 'paid_invoice' %}
+                    <form method="POST" action="/documents/{{ document.id }}/convert">
+                        <input type="hidden" name="target_type" value="receipt">
+                        <button class="w-full btn-gold text-sm" onclick="return confirm('Convert to receipt? This cannot be undone.')">Convert to Receipt</button>
+                    </form>
+                    {% endif %}
+
+                    <form method="POST" action="/documents/{{ document.id }}/delete">
+                        <button class="w-full btn-danger-outline text-sm" onclick="return confirm('Permanently delete this document? This cannot be undone.')">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if client %}
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-3">Client</h3>
+                <a href="/clients/{{ client.id }}" class="text-primary hover:underline text-sm font-medium">{{ client.company_name }}</a>
+                <p class="text-sm text-gray-500 mt-1">{{ client.email }}</p>
+                <p class="text-sm text-gray-500">{{ client.phone }}</p>
+            </div>
+            {% endif %}
+
+            {% if document.internal_notes %}
+            <div class="card p-5">
+                <h3 class="font-semibold text-gray-900 mb-2">Internal Notes</h3>
+                <p class="text-sm text-gray-600">{{ document.internal_notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

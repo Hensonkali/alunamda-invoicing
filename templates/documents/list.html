@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="/dashboard" class="hover:text-primary">Home</a>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-gray-900 font-medium">Documents</span>
+</nav>
+<div class="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 fade-in">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Documents</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ total_docs }} document{{ 's' if total_docs != 1 else '' }} total</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="/documents/new?type=quote" class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors inline-flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                New Quote
+            </a>
+            <a href="/documents/new?type=invoice" class="btn-primary inline-flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                New Invoice
+            </a>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <form method="GET" action="/documents" class="flex gap-3">
+        <div class="flex-1 relative">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by document number..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        {% if filter_type %}<input type="hidden" name="type" value="{{ filter_type }}">{% endif %}
+        {% if filter_status %}<input type="hidden" name="status" value="{{ filter_status }}">{% endif %}
+        <button type="submit" class="px-4 py-2 btn-primary text-sm">Search</button>
+        {% if search_query %}<a href="/documents{% if filter_type %}?type={{ filter_type }}{% if filter_status %}&{% endif %}{% endif %}{% if filter_status and not filter_type %}?{% elif filter_status %}&{% endif %}{% if filter_status %}status={{ filter_status }}{% endif %}" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Clear</a>{% endif %}
+    </form>
+
+    <!-- Type Filters -->
+    <div class="flex gap-2 flex-wrap">
+        <a href="/documents" class="px-3 py-1.5 rounded-lg text-sm {% if not filter_type and not filter_status %}bg-primary text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">All</a>
+        <a href="/documents?type=quote" class="px-3 py-1.5 rounded-lg text-sm {% if filter_type == 'quote' %}bg-primary text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">Quotes</a>
+        <a href="/documents?type=invoice" class="px-3 py-1.5 rounded-lg text-sm {% if filter_type == 'invoice' %}bg-primary text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">Invoices</a>
+        <a href="/documents?type=paid_invoice" class="px-3 py-1.5 rounded-lg text-sm {% if filter_type == 'paid_invoice' %}bg-primary text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">Paid</a>
+        <a href="/documents?type=receipt" class="px-3 py-1.5 rounded-lg text-sm {% if filter_type == 'receipt' %}bg-primary text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">Receipts</a>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="flex gap-2 flex-wrap">
+        <a href="/documents{% if filter_type %}?type={{ filter_type }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if not filter_status %}bg-gray-800 text-white{% else %}bg-white border border-gray-200 text-gray-500 hover:bg-gray-50{% endif %}">All Status</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=draft" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'draft' %}bg-gray-800 text-white{% else %}bg-white border border-gray-200 text-gray-500 hover:bg-gray-50{% endif %}">Draft</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=sent" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'sent' %}bg-blue-600 text-white{% else %}bg-white border border-blue-200 text-blue-600 hover:bg-blue-50{% endif %}">Sent</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=accepted" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'accepted' %}bg-green-600 text-white{% else %}bg-white border border-green-200 text-green-600 hover:bg-green-50{% endif %}">Accepted</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=paid" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'paid' %}bg-green-600 text-white{% else %}bg-white border border-green-200 text-green-600 hover:bg-green-50{% endif %}">Paid</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=overdue" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'overdue' %}bg-red-600 text-white{% else %}bg-white border border-red-200 text-red-600 hover:bg-red-50{% endif %}">Overdue</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=rejected" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'rejected' %}bg-red-600 text-white{% else %}bg-white border border-red-200 text-red-600 hover:bg-red-50{% endif %}">Rejected</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=expired" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'expired' %}bg-yellow-500 text-white{% else %}bg-white border border-yellow-200 text-yellow-600 hover:bg-yellow-50{% endif %}">Expired</a>
+        <a href="/documents?{% if filter_type %}type={{ filter_type }}&{% endif %}status=cancelled" class="px-3 py-1.5 rounded-lg text-xs font-medium {% if filter_status == 'cancelled' %}bg-gray-400 text-white{% else %}bg-white border border-gray-200 text-gray-400 hover:bg-gray-50{% endif %}">Cancelled</a>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div id="bulk-actions-bar" class="hidden card p-3 flex items-center gap-4">
+        <span id="selected-count" class="text-sm text-gray-600 font-medium"></span>
+        <button onclick="bulkAction('sent')" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700">Mark as Sent</button>
+        <button onclick="bulkAction('cancelled')" class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200">Cancel</button>
+    </div>
+
+    <!-- Table -->
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm" aria-label="Documents list">
+                <caption class="sr-only">List of documents with details</caption>
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="w-10 px-3 py-3"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" class="rounded border-gray-300"></th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Number</th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Type</th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Client</th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Date</th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Amount</th>
+                        <th class="text-left px-5 py-3 font-medium text-gray-500">Status</th>
+                        <th class="text-right px-5 py-3 font-medium text-gray-500"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for doc in documents %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-3 py-3"><input type="checkbox" class="doc-checkbox rounded border-gray-300" value="{{ doc.id }}" onchange="updateBulkBar()"></td>
+                        <td class="px-5 py-3">
+                            <a href="/documents/{{ doc.id }}" class="font-medium text-primary hover:underline">{{ doc.document_number }}</a>
+                        </td>
+                        <td class="px-5 py-3"><span class="badge badge-{{ doc.type }}">{{ doc.type | replace('_', ' ') | title }}</span></td>
+                        <td class="px-5 py-3 text-gray-600">{{ doc_clients[doc.client_id].company_name if doc_clients.get(doc.client_id) else '—' }}</td>
+                        <td class="px-5 py-3 text-gray-500">{{ doc.issue_date.strftime('%d %b %Y') }}</td>
+                        <td class="px-5 py-3 font-medium text-gray-900">R{{ "{:,.2f}".format(doc.grand_total) }}</td>
+                        <td class="px-5 py-3"><span class="badge badge-{{ doc.status }}">{{ doc.status | title }}</span></td>
+                        <td class="px-5 py-3 text-right">
+                            <a href="/documents/{{ doc.id }}" class="text-primary hover:underline text-sm">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="px-5 py-12 text-center text-gray-400">No documents found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-500">Page {{ current_page }} of {{ total_pages }}</p>
+        <div class="flex gap-2">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page - 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Previous</a>
+            {% endif %}
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == current_page %}
+                <span class="px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-medium">{{ p }}</span>
+                {% elif p <= 3 or p > total_pages - 3 or (p >= current_page - 1 and p <= current_page + 1) %}
+                <a href="?page={{ p }}{% if filter_type %}&type={{ filter_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">{{ p }}</a>
+                {% elif p == 4 or p == total_pages - 3 %}
+                <span class="px-3 py-1.5 text-gray-400">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page + 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleSelectAll(el) {
+    document.querySelectorAll('.doc-checkbox').forEach(cb => cb.checked = el.checked);
+    updateBulkBar();
+}
+function updateBulkBar() {
+    var checked = document.querySelectorAll('.doc-checkbox:checked');
+    var bar = document.getElementById('bulk-actions-bar');
+    var count = document.getElementById('selected-count');
+    if (checked.length > 0) {
+        bar.classList.remove('hidden');
+        count.textContent = checked.length + ' selected';
+    } else {
+        bar.classList.add('hidden');
+    }
+}
+function bulkAction(status) {
+    var ids = [];
+    document.querySelectorAll('.doc-checkbox:checked').forEach(cb => ids.push(cb.value));
+    if (!ids.length) return;
+    if (!confirm('Change status of ' + ids.length + ' documents to "' + status + '"?')) return;
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/documents/bulk-status';
+    ids.forEach(id => {
+        var inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'doc_ids'; inp.value = id;
+        form.appendChild(inp);
+    });
+    var inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = 'status'; inp.value = status;
+    form.appendChild(inp);
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

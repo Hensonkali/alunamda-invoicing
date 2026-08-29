@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="flex items-center gap-2 text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
+    <a href="/dashboard" class="hover:text-primary">Home</a>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="text-gray-900 font-medium">Recurring Invoices</span>
+</nav>
+<div class="p-6 lg:p-8 max-w-7xl mx-auto space-y-6 fade-in">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Recurring Invoices</h1>
+            <p class="text-sm text-gray-500 mt-1">Automatically generate invoices on a schedule</p>
+        </div>
+        <button onclick="document.getElementById('new-recurring-modal').showModal()" class="btn-primary text-sm inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New Recurring
+        </button>
+    </div>
+
+    {% if recurring %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for rec in recurring %}
+        <div class="card p-5 space-y-3">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="font-semibold text-gray-900">{{ rec.template_name }}</h3>
+                    <p class="text-sm text-gray-500">{{ client_map[rec.client_id].company_name if client_map.get(rec.client_id) else 'Unknown' }}</p>
+                </div>
+                <span class="badge {% if rec.is_active %}badge-accepted{% else %}badge-cancelled{% endif %}">{% if rec.is_active %}Active{% else %}Paused{% endif %}</span>
+            </div>
+            <div class="text-sm text-gray-600 space-y-1">
+                <p>Frequency: <span class="font-medium">{{ rec.frequency | title }}</span></p>
+                <p>Day of month: <span class="font-medium">{{ rec.day_of_month }}</span></p>
+                {% if rec.next_run_date %}
+                <p>Next run: <span class="font-medium">{{ rec.next_run_date.strftime('%d %b %Y') }}</span></p>
+                {% endif %}
+            </div>
+            <div class="flex gap-2 pt-2 border-t border-gray-100">
+                <form method="POST" action="/recurring/{{ rec.id }}/toggle" class="flex-1">
+                    <button class="w-full px-3 py-1.5 text-xs font-medium rounded-lg {% if rec.is_active %}bg-yellow-50 text-yellow-700 hover:bg-yellow-100{% else %}bg-green-50 text-green-700 hover:bg-green-100{% endif %} transition-colors">
+                        {% if rec.is_active %}Pause{% else %}Activate{% endif %}
+                    </button>
+                </form>
+                <form method="POST" action="/recurring/{{ rec.id }}/delete" onsubmit="return confirm('Delete this recurring invoice?')" class="flex-1">
+                    <button class="w-full px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center">
+        <p class="text-gray-400">No recurring invoices set up yet</p>
+        <p class="text-sm text-gray-400 mt-1">Create one to automatically generate invoices on a schedule</p>
+    </div>
+    {% endif %}
+</div>
+
+<dialog id="new-recurring-modal" class="rounded-xl shadow-xl p-0 w-full max-w-lg">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">New Recurring Invoice</h2>
+            <button onclick="this.closest('dialog').close()" class="text-gray-400 hover:text-gray-600" aria-label="Close dialog">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <form method="POST" action="/recurring" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Template Name *</label>
+                <input type="text" name="template_name" required placeholder="e.g. Monthly Bookkeeping - TechCorp" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
+                <select name="client_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                    <option value="">Select client...</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.company_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                    <select name="frequency" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Day of Month</label>
+                    <input type="number" name="day_of_month" value="1" min="1" max="28" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
+                <input type="text" name="payment_terms" value="Due within 30 days" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+            </div>
+            <input type="hidden" name="line_items_snapshot" value="[]">
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="this.closest('dialog').close()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                <button type="submit" onclick="disableSubmit(this)" class="btn-primary text-sm">Create</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+{% endblock %}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ALUNAMDA Accounting Services - Professional invoicing and accounting management">
+    <title>ALUNAMDA - Invoicing</title>
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4/dist/ext/response-targets.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#002060',
+                        gold: '#C9A227',
+                        navy: { 50:'#F0F4FF', 100:'#E2EFFE', 200:'#BFE0FD', 500:'#002060', 600:'#001A4D', 700:'#001540', 800:'#00102E', 900:'#000B1F' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-link { transition: all 0.15s ease; }
+        .sidebar-link:hover { background: rgba(0,32,96,0.05); }
+        .sidebar-link.active { background: rgba(0,32,96,0.08); color: #002060; font-weight: 600; border-left: 3px solid #002060; }
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .btn-primary { background: #002060; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-primary:hover { background: #001A4D; box-shadow: 0 2px 8px rgba(0,32,96,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-gold { background: #C9A227; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-gold:hover { background: #b8921f; box-shadow: 0 2px 8px rgba(201,162,39,0.3); }
+        .btn-danger { background: #dc2626; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-outline { border: 1px solid #d1d5db; background: white; color: #374151; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+        .btn-danger-outline { border: 1px solid #fecaca; background: white; color: #dc2626; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-danger-outline:hover { background: #fef2f2; border-color: #f87171; }
+        .badge { display: inline-flex; align-items: center; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .badge-draft { background: #f3f4f6; color: #374151; }
+        .badge-sent { background: #dbeafe; color: #1d4ed8; }
+        .badge-accepted { background: #d1fae5; color: #059669; }
+        .badge-rejected { background: #fee2e2; color: #dc2626; }
+        .badge-expired { background: #fef3c7; color: #d97706; }
+        .badge-paid { background: #d1fae5; color: #047857; }
+        .badge-overdue { background: #fee2e2; color: #dc2626; }
+        .badge-cancelled { background: #f3f4f6; color: #6b7280; }
+        .badge-quote { background: #e0e7ff; color: #4338ca; }
+        .badge-invoice { background: #dbeafe; color: #1d4ed8; }
+        .badge-paid_invoice { background: #d1fae5; color: #047857; }
+        .badge-receipt { background: #fef3c7; color: #d97706; }
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; display: flex; align-items: center; justify-content: center; }
+        .modal-backdrop[hidden] { display: none; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+        }
+        /* Mobile sidebar */
+        @media (max-width: 1023px) {
+            .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 39; }
+            .sidebar-overlay[hidden] { display: none; }
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50">
+<div class="flex h-full">
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full fixed lg:static z-40 no-print -translate-x-full lg:translate-x-0 transition-transform duration-200">
+        <div class="px-4 py-5 border-b border-gray-200">
+            <div class="flex items-center gap-3">
+                <img src="/static/images/alunamda-logo.png" alt="" aria-hidden="true" class="h-10 w-auto">
+                <div>
+                    <h1 class="text-sm font-bold text-primary tracking-wider">ALUNAMDA</h1>
+                    <p class="text-[10px] text-gray-400">Accounting Services</p>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Main navigation">
+            <p class="text-xs font-medium text-gray-400 tracking-wider uppercase mb-2 px-3">Workspace</p>
+            <a href="/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if request.url.path == '/dashboard' %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Dashboard
+            </a>
+            <a href="/documents" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if '/documents' in request.url.path %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Documents
+            </a>
+            <a href="/clients" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if '/clients' in request.url.path %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Clients
+            </a>
+            <a href="/services" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if '/services' in request.url.path %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Services
+            </a>
+            <a href="/settings" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if '/settings' in request.url.path %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+            </a>
+            <p class="text-xs font-medium text-gray-400 tracking-wider uppercase mt-4 mb-2 px-3">System</p>
+            <a href="/activity" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 {% if '/activity' in request.url.path %}active{% endif %}">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Activity Log
+            </a>
+        </nav>
+        {% if user %}
+        <div class="px-4 py-3 border-t border-gray-200">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">{{ user.name[0] | upper }}</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ user.name }}</p>
+                    <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+                </div>
+                <a href="/logout" class="text-gray-400 hover:text-gray-600" aria-label="Sign out">
+                    <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto">
+        <!-- Mobile header -->
+        <div class="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 no-print">
+            <button onclick="toggleSidebar()" class="p-1 rounded-lg hover:bg-gray-100" aria-label="Open menu">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <img src="/static/images/alunamda-logo.png" alt="" aria-hidden="true" class="h-7 w-auto">
+            <span class="text-sm font-bold text-primary tracking-wider">ALUNAMDA</span>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+<script>
+function toggleSidebar() {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    var isOpen = !sidebar.classList.contains('-translate-x-full');
+    if (isOpen) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    } else {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+    }
+}
+
+function showToast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('toast-container');
+    var colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warning: 'bg-yellow-500' };
+    var icons = {
+        success: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+        error: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+        info: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        warning: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>',
+    };
+    var toast = document.createElement('div');
+    toast.className = 'pointer-events-auto ' + (colors[type] || colors.success) + ' text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm font-medium transform translate-x-full opacity-0 transition-all duration-300';
+    toast.innerHTML = (icons[type] || icons.success) + '<span>' + message + '</span>';
+    container.appendChild(toast);
+    requestAnimationFrame(function() { toast.classList.remove('translate-x-full', 'opacity-0'); });
+    var duration = type === 'error' ? 6000 : 3000;
+    setTimeout(function() {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(function() { toast.remove(); }, 300);
+    }, duration);
+}
+
+function disableSubmit(btn) {
+    btn.disabled = true;
+    btn.dataset.originalText = btn.textContent;
+    btn.innerHTML = '<svg class="animate-spin w-4 h-4 inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+}
+
+// Flash messages from query params
+var params = new URLSearchParams(window.location.search);
+if (params.get('saved')) showToast('Changes saved successfully');
+if (params.get('created')) showToast('Created successfully');
+if (params.get('deleted')) showToast('Deleted successfully');
+if (params.get('error')) showToast(params.get('error'), 'error');
+params.forEach(function(v, k) { if (k !== 'page') { var p = new URLSearchParams(window.location.search); p.delete(k); window.history.replaceState({}, '', window.location.pathname + (p.toString() ? '?' + p.toString() : '')); } });
+
+// Close sidebar on resize to desktop
+window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.add('hidden');
+    }
+});
+</script>
+</body>
+</html>

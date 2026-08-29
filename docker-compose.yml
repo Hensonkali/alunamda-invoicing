@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: alunamda-app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - app-data:/app/db
+      - app-uploads:/app/uploads
+      - app-static:/app/static/images
+    expose:
+      - "1111"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:1111/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: alunamda-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  app-data:
+  app-uploads:
+  app-static:
+  caddy-data:
+  caddy-config:

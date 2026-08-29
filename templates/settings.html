@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-6 lg:p-8 max-w-5xl mx-auto space-y-6 fade-in">
+    {% if request.query_params.get("saved") == "1" %}
+    <div id="saved-banner" class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 flex items-center gap-3">
+        <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-sm font-medium text-green-800">Settings saved successfully.</p>
+        <button onclick="this.parentElement.remove()" class="ml-auto text-green-600 hover:text-green-800" aria-label="Dismiss">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+    <script>setTimeout(function(){ var b=document.getElementById('saved-banner'); if(b) b.remove(); }, 4000);</script>
+    {% endif %}
+
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+        <p class="text-sm text-gray-500 mt-1">Configure your company profile, branding, and document defaults.</p>
+    </div>
+
+    <div class="border-b border-gray-200">
+        <nav class="flex gap-1 -mb-px overflow-x-auto" id="settings-tabs" aria-label="Settings tabs">
+            <button onclick="switchTab('company')" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap" data-tab="company">Company Details</button>
+            <button onclick="switchTab('bank')" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap" data-tab="bank">Bank Details</button>
+            <button onclick="switchTab('branding')" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap" data-tab="branding">Branding</button>
+            <button onclick="switchTab('defaults')" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap" data-tab="defaults">Document Defaults</button>
+            <button onclick="switchTab('notes')" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap" data-tab="notes">Notes &amp; Terms</button>
+        </nav>
+    </div>
+
+    <!-- Company Details -->
+    <div class="tab-panel" id="panel-company">
+        <form method="POST" action="/settings/company" class="card p-6 space-y-5">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Company Details</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Your company information as it appears on documents.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1">Company Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="company_name" name="company_name" value="{{ settings.company_name }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="trading_as" class="block text-sm font-medium text-gray-700 mb-1">Trading As</label>
+                    <input type="text" id="trading_as" name="trading_as" value="{{ settings.trading_as }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="email" name="email" value="{{ settings.email }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="text" id="phone" name="phone" value="{{ settings.phone }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="whatsapp" class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                    <input type="text" id="whatsapp" name="whatsapp" value="{{ settings.whatsapp }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="website" class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                    <input type="url" id="website" name="website" value="{{ settings.website }}" placeholder="https://" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="vat_number" class="block text-sm font-medium text-gray-700 mb-1">VAT Number</label>
+                    <input type="text" id="vat_number" name="vat_number" value="{{ settings.vat_number }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="registration_number" class="block text-sm font-medium text-gray-700 mb-1">Registration Number</label>
+                    <input type="text" id="registration_number" name="registration_number" value="{{ settings.registration_number }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" id="city" name="city" value="{{ settings.city }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                    <input type="text" id="postal_code" name="postal_code" value="{{ settings.postal_code }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+            </div>
+            <div>
+                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Physical Address</label>
+                <textarea id="address" name="address" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.address }}</textarea>
+            </div>
+            <div>
+                <label for="postal_address" class="block text-sm font-medium text-gray-700 mb-1">Postal Address</label>
+                <textarea id="postal_address" name="postal_address" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.postal_address }}</textarea>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="btn-primary text-sm" onclick="disableSubmit(this)">Save Company Details</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bank Details -->
+    <div class="tab-panel hidden" id="panel-bank">
+        <form method="POST" action="/settings/bank" class="card p-6 space-y-5">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Bank Details</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Payment information shown on invoices.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="bank_name" class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
+                    <input type="text" id="bank_name" name="bank_name" value="{{ settings.bank_name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="bank_account_name" class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                    <input type="text" id="bank_account_name" name="bank_account_name" value="{{ settings.bank_account_name }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="bank_account" class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
+                    <input type="text" id="bank_account" name="bank_account" value="{{ settings.bank_account }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="bank_branch" class="block text-sm font-medium text-gray-700 mb-1">Branch Code</label>
+                    <input type="text" id="bank_branch" name="bank_branch" value="{{ settings.bank_branch }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="bank_swift" class="block text-sm font-medium text-gray-700 mb-1">SWIFT Code</label>
+                    <input type="text" id="bank_swift" name="bank_swift" value="{{ settings.bank_swift }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="btn-primary text-sm" onclick="disableSubmit(this)">Save Bank Details</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Branding -->
+    <div class="tab-panel hidden" id="panel-branding">
+        <form method="POST" action="/settings/branding" class="card p-6 space-y-5">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Branding</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Customize the look and feel of your documents.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="primary_color_text" class="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" value="{{ settings.primary_color }}" id="primary-color-picker" class="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5">
+                        <input type="text" id="primary_color_text" name="primary_color" value="{{ settings.primary_color }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        <div id="primary-preview" class="w-10 h-10 rounded-lg border border-gray-200" style="background: {{ settings.primary_color }};"></div>
+                    </div>
+                </div>
+                <div>
+                    <label for="secondary_color_text" class="block text-sm font-medium text-gray-700 mb-1">Secondary / Accent Color</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" value="{{ settings.secondary_color }}" id="secondary-color-picker" class="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5">
+                        <input type="text" id="secondary_color_text" name="secondary_color" value="{{ settings.secondary_color }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                        <div id="secondary-preview" class="w-10 h-10 rounded-lg border border-gray-200" style="background: {{ settings.secondary_color }};"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label for="footer_text" class="block text-sm font-medium text-gray-700 mb-1">Footer Text</label>
+                <textarea id="footer_text" name="footer_text" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.footer_text }}</textarea>
+            </div>
+            <div>
+                <label for="signature" class="block text-sm font-medium text-gray-700 mb-1">Signature Text</label>
+                <textarea id="signature" name="signature" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.signature }}</textarea>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="btn-primary text-sm" onclick="disableSubmit(this)">Save Branding</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Document Defaults -->
+    <div class="tab-panel hidden" id="panel-defaults">
+        <form method="POST" action="/settings/defaults" class="card p-6 space-y-5">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Document Defaults</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Default values applied to new documents.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label for="default_vat_rate" class="block text-sm font-medium text-gray-700 mb-1">Default VAT Rate (%)</label>
+                    <input type="number" id="default_vat_rate" name="default_vat_rate" value="{{ settings.default_vat_rate }}" min="0" max="100" step="0.5" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                </div>
+                <div>
+                    <label for="default_payment_terms" class="block text-sm font-medium text-gray-700 mb-1">Default Payment Terms</label>
+                    <select id="default_payment_terms" name="default_payment_terms" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white">
+                        <option value="immediate" {% if settings.default_payment_terms == "immediate" %}selected{% endif %}>Immediate</option>
+                        <option value="7_days" {% if settings.default_payment_terms == "7_days" %}selected{% endif %}>7 Days</option>
+                        <option value="14_days" {% if settings.default_payment_terms == "14_days" %}selected{% endif %}>14 Days</option>
+                        <option value="30_days" {% if settings.default_payment_terms == "30_days" %}selected{% endif %}>30 Days</option>
+                        <option value="60_days" {% if settings.default_payment_terms == "60_days" %}selected{% endif %}>60 Days</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="default_quote_validity" class="block text-sm font-medium text-gray-700 mb-1">Default Quote Validity</label>
+                    <select id="default_quote_validity" name="default_quote_validity" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white">
+                        <option value="7_days" {% if settings.default_quote_validity == "7_days" %}selected{% endif %}>7 Days</option>
+                        <option value="14_days" {% if settings.default_quote_validity == "14_days" %}selected{% endif %}>14 Days</option>
+                        <option value="30_days" {% if settings.default_quote_validity == "30_days" %}selected{% endif %}>30 Days</option>
+                        <option value="60_days" {% if settings.default_quote_validity == "60_days" %}selected{% endif %}>60 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="btn-primary text-sm" onclick="disableSubmit(this)">Save Document Defaults</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Default Notes & Terms -->
+    <div class="tab-panel hidden" id="panel-notes">
+        <form method="POST" action="/settings/notes" class="card p-6 space-y-5">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900">Default Notes &amp; Terms</h2>
+                <p class="text-sm text-gray-500 mt-0.5">Pre-filled text for new documents.</p>
+            </div>
+            <div>
+                <label for="default_notes" class="block text-sm font-medium text-gray-700 mb-1">Default Client Notes</label>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <button type="button" onclick="appendNote('Thank you for your business. We look forward to working with you again.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Thank You</button>
+                    <button type="button" onclick="appendNote('Please don\'t hesitate to contact us if you have any questions regarding this document.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Questions</button>
+                    <button type="button" onclick="appendNote('Payment can be made via EFT or bank transfer. Please use the invoice number as payment reference.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Payment Info</button>
+                    <button type="button" onclick="appendNote('All prices are inclusive of VAT unless stated otherwise.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">VAT Note</button>
+                </div>
+                <textarea id="default_notes" name="default_notes" rows="4" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.default_notes }}</textarea>
+            </div>
+            <div>
+                <label for="default_terms" class="block text-sm font-medium text-gray-700 mb-1">Default Terms &amp; Conditions</label>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <button type="button" onclick="appendTerms('Payment is due within 30 days of invoice date.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">30-Day Payment</button>
+                    <button type="button" onclick="appendTerms('Late payments may be subject to interest at the prescribed rate.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Late Interest</button>
+                    <button type="button" onclick="appendTerms('All prices are exclusive of VAT unless stated otherwise.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Excl. VAT</button>
+                    <button type="button" onclick="appendTerms('This quote is valid for 30 days from the date of issue.')" class="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition">Quote Validity</button>
+                </div>
+                <textarea id="default_terms" name="default_terms" rows="6" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none">{{ settings.default_terms }}</textarea>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="btn-primary text-sm" onclick="disableSubmit(this)">Save Notes &amp; Terms</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.add('hidden'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.remove('text-primary', 'border-primary', 'font-semibold');
+        b.classList.add('text-gray-500', 'border-transparent');
+    });
+    document.getElementById('panel-' + tab).classList.remove('hidden');
+    var activeBtn = document.querySelector('[data-tab="' + tab + '"]');
+    activeBtn.classList.add('text-primary', 'border-primary', 'font-semibold');
+    activeBtn.classList.remove('text-gray-500', 'border-transparent');
+}
+
+switchTab('company');
+
+document.getElementById('primary-color-picker').addEventListener('input', function() {
+    document.getElementById('primary_color_text').value = this.value;
+    document.getElementById('primary-preview').style.background = this.value;
+});
+document.getElementById('primary_color_text').addEventListener('input', function() {
+    document.getElementById('primary-color-picker').value = this.value;
+    document.getElementById('primary-preview').style.background = this.value;
+});
+document.getElementById('secondary-color-picker').addEventListener('input', function() {
+    document.getElementById('secondary_color_text').value = this.value;
+    document.getElementById('secondary-preview').style.background = this.value;
+});
+document.getElementById('secondary_color_text').addEventListener('input', function() {
+    document.getElementById('secondary-color-picker').value = this.value;
+    document.getElementById('secondary-preview').style.background = this.value;
+});
+
+function appendNote(text) {
+    var ta = document.getElementById('default_notes');
+    if (ta.value && !ta.value.endsWith('\n')) ta.value += '\n';
+    ta.value += text;
+}
+function appendTerms(text) {
+    var ta = document.getElementById('default_terms');
+    if (ta.value && !ta.value.endsWith('\n')) ta.value += '\n';
+    ta.value += text;
+}
+</script>
+{% endblock %}

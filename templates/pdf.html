@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ doc.document_number }}</title>
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Helvetica, Arial, sans-serif; background: white; }
+
+        .container { width: 210mm; min-height: 297mm; padding: 35px 40px; }
+
+        hr { border: 0; border-top: 1px solid #f5a623; margin: 18px 0; }
+
+        /* ═══════════ HEADER ═══════════ */
+        .header { display: table; width: 100%; margin-bottom: 18px; }
+        .header-left { display: table-cell; width: 55%; vertical-align: top; }
+        .header-right { display: table-cell; width: 45%; vertical-align: top; text-align: right; }
+
+        .brand { display: table; width: 100%; margin-bottom: 14px; }
+        .logo { display: table-cell; vertical-align: middle; width: 70px; padding-right: 12px; }
+        .logo img { width: 70px; height: auto; }
+        .brand-text { display: table-cell; vertical-align: middle; }
+        .company-name { font-size: 28px; font-weight: 800; color: #192b50; letter-spacing: 1px; }
+        .company-sub { font-size: 11px; color: #192b50; font-weight: 600; letter-spacing: 1px; border-bottom: 2px solid #f5a623; padding-bottom: 3px; display: inline-block; margin-top: 2px; }
+
+        .contact-info { display: table; width: 100%; }
+        .contact-item { display: table-cell; font-size: 13px; color: #333; font-weight: 500; vertical-align: middle; padding-right: 18px; }
+        .contact-icon { display: inline-block; width: 16px; height: 16px; background: #192b50; color: white; text-align: center; line-height: 16px; font-size: 8px; font-weight: 700; margin-right: 5px; vertical-align: middle; }
+
+        .doc-title { font-size: 32px; font-weight: 800; color: #192b50; letter-spacing: 2px; }
+        .doc-number { font-size: 22px; font-weight: 700; color: #192b50; margin-top: 5px; }
+        .badge { display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 700; margin-top: 5px; }
+        .badge-draft { background: #fff5e0; color: #a5822c; }
+        .badge-sent { background: #e3f2fd; color: #1565c0; }
+        .badge-accepted { background: #e8f5e9; color: #2e7d32; }
+        .badge-rejected { background: #ffebee; color: #c62828; }
+        .badge-expired { background: #fff5e0; color: #a5822c; }
+        .badge-overdue { background: #ffebee; color: #c62828; }
+        .badge-paid { background: #e8f5e9; color: #2e7d32; }
+        .badge-cancelled { background: #f5f5f5; color: #757575; }
+
+        .meta-info { margin-top: 14px; text-align: right; font-size: 13px; line-height: 1.7; color: #333; font-weight: 600; }
+        .meta-info .label { color: #666; font-weight: 600; margin-right: 5px; }
+
+        /* ═══════════ NOTES ═══════════ */
+        .notes-section { display: table; width: 100%; margin: 8px 0 22px 0; }
+        .notes-label { display: table-cell; font-weight: 700; color: #192b50; font-size: 14px; border-left: 3px solid #f5a623; padding-left: 10px; vertical-align: middle; white-space: nowrap; }
+        .notes-text { display: table-cell; font-size: 14px; color: #666; padding-left: 15px; vertical-align: middle; }
+
+        /* ═══════════ BILL TO ═══════════ */
+        .bill-to { background: #f6f8fb; padding: 15px 20px; margin-bottom: 18px; }
+        .bill-to-title { font-weight: 700; font-size: 13px; color: #192b50; margin-bottom: 12px; display: block; }
+        .bill-to-grid { display: table; width: 100%; }
+        .bill-item { display: table-cell; font-size: 13px; font-weight: 600; color: #333; vertical-align: middle; padding-right: 10px; }
+        .bill-sep { display: table-cell; width: 1px; background: #ddd; padding: 0 10px; vertical-align: middle; }
+        .bill-icon { display: inline-block; width: 16px; height: 16px; background: #192b50; color: white; text-align: center; line-height: 16px; font-size: 7px; font-weight: 700; margin-right: 5px; vertical-align: middle; }
+        .bill-item .label { color: #666; font-weight: 500; margin-right: 2px; }
+
+        /* ═══════════ TABLE ═══════════ */
+        .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 14px; }
+        .invoice-table th { background: #192b50; color: white; padding: 12px 15px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        .invoice-table th.num { text-align: right; }
+        .invoice-table th.ctr { text-align: center; }
+        .invoice-table td { padding: 15px; border-bottom: 1px solid #eee; color: #333; }
+        .invoice-table td.num { text-align: right; }
+        .invoice-table td.ctr { text-align: center; }
+        .invoice-table .desc { color: #666; font-size: 13px; display: block; margin-top: 2px; }
+        .invoice-table tbody tr.alt { background: #fafbfc; }
+
+        /* ═══════════ TOTALS ═══════════ */
+        .totals { display: table; width: 100%; margin-bottom: 18px; }
+        .totals-spacer { display: table-cell; width: 55%; }
+        .totals-box { display: table-cell; width: 45%; vertical-align: top; text-align: right; }
+        .totals-inner { display: inline-block; min-width: 320px; }
+        .totals-row { display: table; width: 100%; padding: 5px 0; font-size: 14px; }
+        .totals-lbl { display: table-cell; text-align: right; font-weight: 600; color: #666; padding-right: 15px; }
+        .totals-val { display: table-cell; text-align: right; width: 100px; font-weight: 600; }
+        .total-box { background: #192b50; color: white; padding: 10px 20px; margin-top: 6px; display: table; width: 100%; }
+        .total-box .total-lbl { display: table-cell; font-size: 14px; font-weight: 700; }
+        .total-box .total-val { display: table-cell; text-align: right; font-size: 18px; font-weight: 800; width: 100px; }
+
+        /* ═══════════ PAYMENT ═══════════ */
+        .payment-details { background: #f6f8fb; padding: 15px 20px; margin-bottom: 18px; }
+        .payment-title { font-weight: 700; font-size: 14px; color: #192b50; margin-bottom: 15px; display: table; width: 100%; }
+        .payment-title-icon { display: table-cell; width: 18px; height: 18px; background: #192b50; color: white; text-align: center; line-height: 18px; font-size: 9px; font-weight: 700; vertical-align: middle; }
+        .payment-title-text { display: table-cell; vertical-align: middle; padding-left: 8px; }
+        .payment-grid { display: table; width: 100%; }
+        .payment-col { display: table-cell; vertical-align: top; padding: 0 12px; }
+        .payment-sep { display: table-cell; width: 1px; background: #f5a623; vertical-align: top; }
+        .payment-label { font-size: 11px; color: #333; font-weight: 600; margin-bottom: 4px; }
+        .payment-value { font-size: 13px; font-weight: 700; color: #333; }
+
+        /* ═══════════ FOOTER ═══════════ */
+        .footer { text-align: center; font-size: 14px; color: #192b50; font-weight: 500; padding-top: 18px; border-top: 1px solid #f5a623; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="brand">
+                    <div class="logo">
+                        {% if logo_base64 %}
+                        <img src="{{ logo_base64 }}" alt="Alunamda Logo">
+                        {% endif %}
+                    </div>
+                    <div class="brand-text">
+                        <div class="company-name">ALUNAMDA</div>
+                        <div class="company-sub">ACCOUNTING SERVICES (PTY) LTD,</div>
+                    </div>
+                </div>
+                <div class="contact-info">
+                    {% if settings.phone %}
+                    <div class="contact-item">
+                        <span class="contact-icon">P</span>
+                        {{ settings.phone }}
+                    </div>
+                    {% endif %}
+                    {% if settings.email %}
+                    <div class="contact-item">
+                        <span class="contact-icon">@</span>
+                        {{ settings.email }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="doc-title">
+                    {% if doc.type == 'quote' %}QUOTE
+                    {% elif doc.type == 'invoice' %}INVOICE
+                    {% elif doc.type == 'paid_invoice' %}PAID INVOICE
+                    {% elif doc.type == 'receipt' %}RECEIPT
+                    {% endif %}
+                </div>
+                <div class="doc-number">{{ doc.document_number }}</div>
+                <span class="badge badge-{{ doc.status }}">{{ doc.status }}</span>
+                <div class="meta-info">
+                    <div><span class="label">ISSUE DATE</span> : {{ doc.issue_date.strftime('%d %b %Y') }}</div>
+                    {% if doc.due_date %}
+                    <div><span class="label">DUE DATE</span> : {{ doc.due_date.strftime('%d %b %Y') }}</div>
+                    {% endif %}
+                    <div><span class="label">PAYMENT TERMS</span> : {{ doc.payment_terms }}</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notes -->
+        {% if doc.client_notes or settings.default_notes %}
+        <div class="notes-section">
+            <span class="notes-label">NOTES</span>
+            <span class="notes-text">{{ doc.client_notes if doc.client_notes else settings.default_notes }}</span>
+        </div>
+        {% endif %}
+
+        <hr>
+
+        <!-- Bill To -->
+        <div class="bill-to">
+            <span class="bill-to-title">BILL TO</span>
+            <div class="bill-to-grid">
+                <div class="bill-item">
+                    <span class="bill-icon">C</span>
+                    <strong>{{ client.company_name if client else '—' }}</strong>
+                </div>
+                <div class="bill-sep"></div>
+                {% if client and client.contact_name %}
+                <div class="bill-item">
+                    <span class="bill-icon">U</span>
+                    {{ client.contact_name }}
+                </div>
+                <div class="bill-sep"></div>
+                {% endif %}
+                {% if client and client.email %}
+                <div class="bill-item">
+                    <span class="bill-icon">@</span>
+                    {{ client.email }}
+                </div>
+                <div class="bill-sep"></div>
+                {% endif %}
+                {% if client and client.phone %}
+                <div class="bill-item">
+                    <span class="bill-icon">P</span>
+                    {{ client.phone }}
+                </div>
+                <div class="bill-sep"></div>
+                {% endif %}
+                {% if client and client.vat_number %}
+                <div class="bill-item">
+                    <span class="label">VAT No.:</span> {{ client.vat_number }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th class="ctr" style="width: 5%;">#</th>
+                    <th style="width: 35%;">DESCRIPTION</th>
+                    <th class="num" style="width: 15%;">QTY</th>
+                    <th class="num" style="width: 20%;">UNIT PRICE</th>
+                    <th class="num" style="width: 10%;">VAT %</th>
+                    <th class="num" style="width: 15%;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in doc.line_items %}
+                <tr{% if loop.index0 % 2 == 0 %} class="alt"{% endif %}>
+                    <td class="ctr">{{ loop.index }}</td>
+                    <td>
+                        <strong>{{ item.service }}</strong>
+                        {% if item.description and item.description != item.service %}
+                        <span class="desc">{{ item.description }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="num">{{ '%.2f' % item.quantity }}</td>
+                    <td class="num">{{ item.unit_price|zar }}</td>
+                    <td class="num">{{ '%.0f' % item.vat_rate }}%</td>
+                    <td class="num" style="font-weight: 700;">{{ item.line_total|zar }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals">
+            <div class="totals-spacer"></div>
+            <div class="totals-box">
+                <div class="totals-inner">
+                    <div class="totals-row">
+                        <span class="totals-lbl">SUBTOTAL (EXCL. VAT)</span>
+                        <span class="totals-val">{{ doc.subtotal|zar }}</span>
+                    </div>
+                    {% if doc.discount_amount > 0 %}
+                    <div class="totals-row">
+                        <span class="totals-lbl">DISCOUNT</span>
+                        <span class="totals-val" style="color: #dc2626;">-{{ doc.discount_amount|zar }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="totals-row">
+                        <span class="totals-lbl">VAT ({{ doc.vat_rate|int }}%)</span>
+                        <span class="totals-val">{{ doc.vat_amount|zar }}</span>
+                    </div>
+                    <div class="total-box">
+                        <span class="total-lbl">TOTAL (INCL. VAT)</span>
+                        <span class="total-val">{{ doc.grand_total|zar }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="payment-details">
+            <div class="payment-title">
+                <span class="payment-title-icon">B</span>
+                <span class="payment-title-text">PAYMENT DETAILS</span>
+            </div>
+            <div class="payment-grid">
+                {% if settings.bank_name %}
+                <div class="payment-col">
+                    <div class="payment-label">Bank Name</div>
+                    <div class="payment-value">{{ settings.bank_name }}</div>
+                </div>
+                <div class="payment-sep"></div>
+                {% endif %}
+                {% if settings.bank_account_name %}
+                <div class="payment-col">
+                    <div class="payment-label">Account Name</div>
+                    <div class="payment-value">{{ settings.bank_account_name }}</div>
+                </div>
+                <div class="payment-sep"></div>
+                {% endif %}
+                {% if settings.bank_account %}
+                <div class="payment-col">
+                    <div class="payment-label">Account Number</div>
+                    <div class="payment-value">{{ settings.bank_account }}</div>
+                </div>
+                <div class="payment-sep"></div>
+                {% endif %}
+                {% if settings.bank_branch %}
+                <div class="payment-col">
+                    <div class="payment-label">Branch Code</div>
+                    <div class="payment-value">{{ settings.bank_branch }}</div>
+                </div>
+                <div class="payment-sep"></div>
+                {% endif %}
+                <div class="payment-col">
+                    <div class="payment-label">Reference</div>
+                    <div class="payment-value">{{ doc.document_number }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Thank you for considering <b>ALUNAMDA</b>.
+        </div>
+
+    </div>
+
+</body>
+</html>

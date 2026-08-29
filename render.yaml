@@ -1,0 +1,32 @@
+# ALUNAMDA Invoicing - Render deployment config
+# https://docs.render.com/blueprints
+
+services:
+  - type: web
+    name: alunamda-invoicing
+    runtime: image
+    image:
+      url: # Will be set after first deploy
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CSRF_SECRET_KEY
+        generateValue: true
+      - key: APP_NAME
+        value: ALUNAMDA Invoicing
+      - key: DEBUG
+        value: "false"
+      - key: SESSION_EXPIRE_MINUTES
+        value: "1440"
+      - key: ITEMS_PER_PAGE
+        value: "25"
+      - key: ACTIVITY_PER_PAGE
+        value: "50"
+      - key: DATA_DIR
+        value: /data
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
