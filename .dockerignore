@@ -15,10 +15,10 @@ pdf/
 scripts/
 tests/
 *.md
-*.png
-*.jpg
-*.jpeg
 .dockerignore
 docker-compose.yml
 Caddyfile
 start.bat
+fly.toml
+render.yaml
+deploy.ps1

@@ -1,4 +1,3 @@
-# Multi-stage build for ALUNAMDA Invoicing
 # Stage 1: Build dependencies
 FROM python:3.12-slim-bookworm AS builder
 
@@ -8,6 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libffi-dev \
+    libxml2-dev \
+    libxslt1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -18,28 +19,25 @@ FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
-# Install system dependencies for WeasyPrint (Pango, Cairo)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf2.0-0 \
     libffi8 \
+    libxml2 \
+    libxslt1.1 \
     shared-mime-info \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy installed Python packages
 COPY --from=builder /install /usr/local
 
-# Copy application code
 COPY . .
 
-# Create required directories
 RUN mkdir -p /data/uploads /data/db /data/static/images /data/backups
 
-# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV DATABASE_URL=sqlite+aiosqlite:///./db/alunamda.db
 
 EXPOSE 8000
 
